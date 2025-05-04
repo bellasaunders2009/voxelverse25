@@ -392,7 +392,7 @@ const initTexture = () => {
     TEXTURES.GRASS = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/grass_block.jpg') });
     TEXTURES.BRICK = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/brick_block.jpg') });
     TEXTURES.BRICK_B = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/brick2_block.jpg') });
-    TEXTURES.GLASS = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/glass_block.png') });
+    TEXTURES.GLASS = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.7, depthWrite: false, map: new THREE.TextureLoader().load('textures/glass_block.png') });
     TEXTURES.SAND = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/sand_block.jpg') });
     TEXTURES.WATER = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.7, map: new THREE.TextureLoader().load('textures/water.gif') });
     TEXTURES.LADDER = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/ladder.png') });
@@ -727,32 +727,32 @@ const addAudio = () => {
     const audioLoader = new THREE.AudioLoader();
 
     // Background ambient sound
-    audioLoader.load('sounds/birds.mp3', function (buffer) {
+    audioLoader.load('./sounds/birds.mp3', function (buffer) {
         sound_bg.setBuffer(buffer);
         sound_bg.setLoop(true);
         sound_bg.setVolume(0.3);
     });
 
     // Block breaking sound
-    audioLoader.load('sounds/break.ogg', function (buffer) {
+    audioLoader.load('./sounds/break.ogg', function (buffer) {
         sound_break.setBuffer(buffer);
         sound_break.setVolume(1);
     });
 
     // Block placing sound
-    audioLoader.load('sounds/create.ogg', function (buffer) {
+    audioLoader.load('./sounds/create.ogg', function (buffer) {
         sound_create.setBuffer(buffer);
         sound_create.setVolume(1);
     });
 
     // Add footstep sound using step.mp3 instead of step.ogg
-    audioLoader.load('sounds/step.mp3', function (buffer) {
+    audioLoader.load('./sounds/step.mp3', function (buffer) {
         sound_step.setBuffer(buffer);
         sound_step.setVolume(0.5);
     });
 
     // Add jump sound using jump.mp3 instead of jump.ogg
-    audioLoader.load('sounds/jump.mp3', function (buffer) {
+    audioLoader.load('./sounds/jump.mp3', function (buffer) {
         sound_jump.setBuffer(buffer);
         sound_jump.setVolume(0.7);
     });
@@ -793,7 +793,7 @@ const createSpecialBlock = (type, position) => {
             // Animated GIF files are not automatically animated in Three.js.
             // It is recommended to convert your water animation (if it’s a gif) to a video format (e.g., water.mp4).
             const video = document.createElement('video');
-            video.src = 'textures/water.mp4'; // Use a video file (or webm) here.
+            video.src = './textures/water.mp4'; // Use a video file (or webm) here.
             video.loop = true;
             video.muted = true;
             video.play();
