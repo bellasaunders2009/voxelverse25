@@ -548,12 +548,15 @@ const checkCollisions = (moveDirection, moveDistance) => {
     const intersects = raycaster.intersectObjects(objects, false);
 
     if (intersects.length > 0 && intersects[0].distance < PLAYER_WIDTH + moveDistance) {
-        // Collision detected, adjust move distance
         const obj = intersects[0].object;
-        if (!obj.userData || !obj.userData.isTransparent) {
-            return intersects[0].distance - PLAYER_WIDTH * 0.9;
+        // ignore transparent blocks and open doors
+        if ((obj.userData.isTransparent) ||
+            (obj.userData.isDoor && obj.userData.open)) {
+            return moveDistance;
         }
+        return intersects[0].distance - PLAYER_WIDTH * 0.9;
     }
+
 
     return moveDistance;
 };
