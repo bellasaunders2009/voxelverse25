@@ -862,6 +862,53 @@ function createLadder(intersect) {
     objects.push(ladder);
 }
 
+// Toggle open/closed on click
+function toggleDoor(door) {
+    const openAngle = Math.PI / 2; // 90°
+    const isOpen = door.userData.open;
+    const pivot = door.userData.pivot; // THREE.Object3D
+
+    // Animate rotation (you can use gsap or simply set instantly)
+    pivot.rotation.y = isOpen ? 0 : openAngle * door.userData.hingeDir;
+    door.userData.open = !isOpen;
+}
+
+// Place a two‑block‑tall door
+function createDoor(intersect) {
+    const normal = intersect.face.normal.clone();
+    const faceCenter = intersect.point.clone()
+        .divideScalar(50).floor().multiplyScalar(50).addScalar(25)
+        .addScaledVector(normal, 25);
+
+    // Build a pivot for hinge rotation
+    const pivot = new THREE.Object3D();
+    pivot.position.copy(faceCenter);
+    Scene.add(pivot);
+
+    // Door geometry: width=50, height=100, thickness=5
+    const doorGeo = new THREE.BoxGeometry(50, 100, 5);
+    const doorMesh = new THREE.Mesh(doorGeo, TEXTURES.DOOR);
+
+    // Position bottom half
+    doorMesh.position.set(0, 50, 0);
+    pivot.add(doorMesh);
+
+    // Tag as door
+    doorMesh.userData = {
+        isDoor: true,
+        open: false,
+        pivot: pivot,
+        hingeDir: (normal.x + normal.z > 0) ? 1 : -1  // choose hinge side
+    };
+    objects.push(doorMesh); // for collision & raycasting
+}
+
+// In onPointerDown, detect clicks on doors
+if (targetBlock.userData.isDoor && !isShiftDown) {
+    toggleDoor(targetBlock);
+    return; // skip block placement
+}
+
 init();
 addAudio();
 render();
