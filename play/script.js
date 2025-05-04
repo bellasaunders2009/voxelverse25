@@ -396,6 +396,7 @@ const initTexture = () => {
     TEXTURES.SAND = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/sand_block.jpg') });
     TEXTURES.WATER = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.7, map: new THREE.TextureLoader().load('textures/water.gif') });
     TEXTURES.LADDER = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/ladder.png') });
+    TEXTURES.DOOR = new THREE.MeshLambertMaterial({ map: new THREE.TextureLoader().load('textures/door.png'), side: THREE.DoubleSide });
 
     cubeGeo = new THREE.BoxGeometry(50, 50, 50);
 }
@@ -502,6 +503,8 @@ const onPointerDown = (event) => {
 
                 // Instead of using the raw intersection point, snap to grid at the center of the block face.
                 createLadder(intersect);
+            } else if (cubeMaterial === TEXTURES.DOOR) {
+                 createDoor(intersect);
             } else {
                 // Standard block placement for non-ladder types:
                 const pos = intersect.point.clone().add(intersect.face.normal);
