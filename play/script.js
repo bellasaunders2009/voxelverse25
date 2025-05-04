@@ -392,11 +392,10 @@ const initTexture = () => {
     TEXTURES.GRASS = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/grass_block.jpg') });
     TEXTURES.BRICK = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/brick_block.jpg') });
     TEXTURES.BRICK_B = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/brick2_block.jpg') });
-    TEXTURES.GLASS = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.7, depthWrite: false, map: new THREE.TextureLoader().load('textures/glass_block.png') });
+    TEXTURES.GLASS = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/glass_block.png') });
     TEXTURES.SAND = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/sand_block.jpg') });
     TEXTURES.WATER = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.7, map: new THREE.TextureLoader().load('textures/water.gif') });
     TEXTURES.LADDER = new THREE.MeshLambertMaterial({ transparent: true, map: new THREE.TextureLoader().load('textures/ladder.png') });
-    TEXTURES.DOOR = new THREE.MeshLambertMaterial({ map: new THREE.TextureLoader().load('textures/door.png'), side: THREE.DoubleSide });
 
     cubeGeo = new THREE.BoxGeometry(50, 50, 50);
 }
@@ -503,8 +502,6 @@ const onPointerDown = (event) => {
 
                 // Instead of using the raw intersection point, snap to grid at the center of the block face.
                 createLadder(intersect);
-            } else if (cubeMaterial === TEXTURES.DOOR) {
-                 createDoor(intersect);
             } else {
                 // Standard block placement for non-ladder types:
                 const pos = intersect.point.clone().add(intersect.face.normal);
@@ -548,15 +545,12 @@ const checkCollisions = (moveDirection, moveDistance) => {
     const intersects = raycaster.intersectObjects(objects, false);
 
     if (intersects.length > 0 && intersects[0].distance < PLAYER_WIDTH + moveDistance) {
+        // Collision detected, adjust move distance
         const obj = intersects[0].object;
-        // ignore transparent blocks and open doors
-        if ((obj.userData.isTransparent) ||
-            (obj.userData.isDoor && obj.userData.open)) {
-            return moveDistance;
+        if (!obj.userData || !obj.userData.isTransparent) {
+            return intersects[0].distance - PLAYER_WIDTH * 0.9;
         }
-        return intersects[0].distance - PLAYER_WIDTH * 0.9;
     }
-
 
     return moveDistance;
 };
@@ -733,32 +727,32 @@ const addAudio = () => {
     const audioLoader = new THREE.AudioLoader();
 
     // Background ambient sound
-    audioLoader.load('./sounds/birds.mp3', function (buffer) {
+    audioLoader.load('sounds/birds.mp3', function (buffer) {
         sound_bg.setBuffer(buffer);
         sound_bg.setLoop(true);
         sound_bg.setVolume(0.3);
     });
 
     // Block breaking sound
-    audioLoader.load('./sounds/break.ogg', function (buffer) {
+    audioLoader.load('sounds/break.ogg', function (buffer) {
         sound_break.setBuffer(buffer);
         sound_break.setVolume(1);
     });
 
     // Block placing sound
-    audioLoader.load('./sounds/create.ogg', function (buffer) {
+    audioLoader.load('sounds/create.ogg', function (buffer) {
         sound_create.setBuffer(buffer);
         sound_create.setVolume(1);
     });
 
     // Add footstep sound using step.mp3 instead of step.ogg
-    audioLoader.load('./sounds/step.mp3', function (buffer) {
+    audioLoader.load('sounds/step.mp3', function (buffer) {
         sound_step.setBuffer(buffer);
         sound_step.setVolume(0.5);
     });
 
     // Add jump sound using jump.mp3 instead of jump.ogg
-    audioLoader.load('./sounds/jump.mp3', function (buffer) {
+    audioLoader.load('sounds/jump.mp3', function (buffer) {
         sound_jump.setBuffer(buffer);
         sound_jump.setVolume(0.7);
     });
@@ -799,7 +793,7 @@ const createSpecialBlock = (type, position) => {
             // Animated GIF files are not automatically animated in Three.js.
             // It is recommended to convert your water animation (if it’s a gif) to a video format (e.g., water.mp4).
             const video = document.createElement('video');
-            video.src = './textures/water.mp4'; // Use a video file (or webm) here.
+            video.src = 'textures/water.mp4'; // Use a video file (or webm) here.
             video.loop = true;
             video.muted = true;
             video.play();
@@ -863,53 +857,6 @@ function createLadder(intersect) {
 
     Scene.add(ladder);
     objects.push(ladder);
-}
-
-// Toggle open/closed on click
-function toggleDoor(door) {
-    const openAngle = Math.PI / 2; // 90°
-    const isOpen = door.userData.open;
-    const pivot = door.userData.pivot; // THREE.Object3D
-
-    // Animate rotation (you can use gsap or simply set instantly)
-    pivot.rotation.y = isOpen ? 0 : openAngle * door.userData.hingeDir;
-    door.userData.open = !isOpen;
-}
-
-// Place a two‑block‑tall door
-function createDoor(intersect) {
-    const normal = intersect.face.normal.clone();
-    const faceCenter = intersect.point.clone()
-        .divideScalar(50).floor().multiplyScalar(50).addScalar(25)
-        .addScaledVector(normal, 25);
-
-    // Build a pivot for hinge rotation
-    const pivot = new THREE.Object3D();
-    pivot.position.copy(faceCenter);
-    Scene.add(pivot);
-
-    // Door geometry: width=50, height=100, thickness=5
-    const doorGeo = new THREE.BoxGeometry(50, 100, 5);
-    const doorMesh = new THREE.Mesh(doorGeo, TEXTURES.DOOR);
-
-    // Position bottom half
-    doorMesh.position.set(0, 50, 0);
-    pivot.add(doorMesh);
-
-    // Tag as door
-    doorMesh.userData = {
-        isDoor: true,
-        open: false,
-        pivot: pivot,
-        hingeDir: (normal.x + normal.z > 0) ? 1 : -1  // choose hinge side
-    };
-    objects.push(doorMesh); // for collision & raycasting
-}
-
-// In onPointerDown, detect clicks on doors
-if (targetBlock.userData.isDoor && !isShiftDown) {
-    toggleDoor(targetBlock);
-    return; // skip block placement
 }
 
 init();
